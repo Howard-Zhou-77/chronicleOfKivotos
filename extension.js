@@ -243,7 +243,8 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                     'ba_HarunaKurodate': ['female', 'shu', 4, ['ba_zhadian', 'ba_chuanju']],
                     'ba_ShunSunohara': ['female', 'qun', 4, ['ba_lijiao', 'ba_youbian', 'ba_jugao']],
                     'ba_JunkoAkashi': ['female', 'shu', 4, ['ba_jichang', 'ba_nushe']],
-                    'ba_AyaneOkusora': ['female', 'qun', 3, ['ba_jixing', 'ba_zhixiang', 'ba_yuyun']]
+                    'ba_AyaneOkusora': ['female', 'qun', 3, ['ba_jixing', 'ba_zhixiang', 'ba_yuyun']],
+                    ba_HareOmagari: ['female', 'wu', 4, ['ba_zhenlei', 'ba_jiyin']]
                 },
                 characterIntro: {
                     "ba_NagisaKirifuji": "摘自《乞国秘史》第四十八章 坠金鹰星升骏影宫 妒香兰火起霜鸾阁：<br><br>……<br>势头发展到这里，从来就不占理还在上师面前被戳破了架子的金鹰仙子已没了半点身为茶帘洞主的威严，只剩一口讨饶的好话求骏影郡主在上师面前保自己一点面子。<br>那骏影郡主也不做怒，只是笑眯眯的说：“就是如此在下也不会怪罪仙子大人的。至于原因吗，啊哈哈……”<br><br>金鹰仙子回想起了昨夜玄铁阁主带去的那句话，“啊哈哈，和仙子大人演做朋友的戏实是有意思的很啊！”，顿时明白了带这话的人正是骏影郡主，又悔又恨，急气攻心，一口毒血瞬时喷了出来，趴在茶桌上再起不能。",
@@ -334,6 +335,7 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                     ba_ShunSunohara: "春原瞬",
                     ba_JunkoAkashi: "赤司淳子",
                     ba_AyaneOkusora: "奥空绫音",
+                    ba_HareOmagari: "小钩晴"
                 },
             },
             card: {
@@ -7315,7 +7317,7 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                         popup: false,
                         content: (event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result) => {
                             'step 0'
-                            player.chooseTarget((card,player,target)=>target!=player&&target.countGainableCards('he')>0, get.prompt2(event.name)).set('ai', target => {
+                            player.chooseTarget((card, player, target) => target != player && target.countGainableCards('he') > 0, get.prompt2(event.name)).set('ai', target => {
                                 var player = get.player()
                                 if (get.attitude(player, target) > 0) return -1;
                                 var res = 0;
@@ -7558,6 +7560,146 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                         },
                         subSkill: { 1: { sub: true, charlotte: true, mark: true, intro: { content: "本回合已发动过" } } }
                     },
+                    ba_zhenlei: {
+                        direct: true,
+                        popup: false,
+                        trigger: { player: "phaseZhunbeiBegin" },
+                        filter: (event, player) => player.countCards('he') > 0 && player.hp >= 1,
+                        content: (event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result) => {
+                            'step 0'
+                            player.chooseCardTarget({
+                                filterCard: card => {
+                                    let suit = get.suit(card)
+                                    for (let _card of ui.selected.cards) {
+                                        if (get.suit(_card) != suit) return false;
+                                    }
+                                    return true;
+                                },
+                                complexCard: true,
+                                position: 'he',
+                                selectCard: () => {
+                                    let player = get.player()
+                                    return [1, player.hp]
+                                },
+                                filterTarget: (card, player, target) => {
+                                    return player != target
+                                },
+                                complexTarget: true,
+                                selectTarget: () => {
+                                    return [1, ui.selected.cards.length]
+                                },
+                                complexSelect: true,
+                                ai1: card => {
+                                    return 7 - get.value(card)
+                                },
+                                ai2: target => {
+                                    let player = get.player()
+                                    if (get.attitude(player, target) > 0) return -1;
+                                    return get.damageEffect(player, target)
+                                },
+                            })
+                            'step 1'
+                            if (result.bool) {
+                                result.targets.sortBySeat()
+                                player.logSkill(event.name, result.targets)
+                                player.discard(result.cards)
+                                for (let _target of result.targets) {
+                                    _target.addTempSkill('ba_zhenlei_1')
+                                    _target.damage()
+                                }
+                            }
+                        },
+                        subSkill: {
+                            1: {
+                                charlotte: true,
+                                mark: true,
+                                intro: {
+                                    content: "不能使用或打出手牌",
+                                },
+                                mod: {
+                                    "cardEnabled2": function (card) {
+                                        if (get.position(card) == 'h') return false;
+                                    },
+                                },
+                                sub: true,
+                            }
+                        }
+                    },
+                    ba_jiyin: {
+                        filterCard: (card, player)=>get.type(card) == 'basic' && player.canRecast(card),
+                        filter: (event,player) => player.hp>1&&player.countCards('h',card=>get.type(card) == 'basic' && player.canRecast(card)),
+                        position: "h",
+                        selectCard: 1,
+                        discard: false,
+                        lose: false,
+                        delay: false,
+                        enable: "phaseUse",
+                        content: (event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result)=>{
+                            'step 0'
+                            player.recast(cards)
+                            'step 1'
+                            let name = get.name(cards[0])
+                            switch(name){
+                                case 'sha':
+                                case 'shan':
+                                    player.loseHp()
+                                    break;
+                                case 'tao':
+                                    player.draw()
+                                    break;
+                                case 'jiu':
+                                    player.recover()
+                                    break;
+                            }
+                            player.storage.ba_jiyin_1++;
+                            player.syncStorage('ba_jiyin_1')
+                        },
+                        check: card=>{
+                            let player = get.player()
+                            let others = player.getCards('h',_card=>get.type(_card) == 'basic' && _card !=card && player.canRecast(_card))
+                            let othersha = player.getCards('h', _card=>get.name(_card) == 'sha' && _card != card && player.canRecast(_card))
+                            switch(get.name(card)){
+                                case 'sha':
+                                    if (others.filter(_card=>get.name(_card) != 'sha').length) return -1;
+                                    if (!player.hasUsableCard('sha') || !othersha.length) return -1; 
+                                    return 4 - get.value(card);
+                                case 'shan':
+                                    let shans = others.filter(_card=>get.name(_card) == 'shan').length
+                                    let shas = othersha.length
+                                    return player.hp/2+shas/3+shans/1.5 - get.value(card)
+                                case 'tao':
+                                    return (player.hp <= 2? 5 : 8) + othersha.length / 5 - get.value(card)
+                                case 'jiu':
+                                    return othersha.length / 2 + player.getDamagedHp() + 2 - get.value(card)
+                                default:
+                                    return 5.5 - get.value(card)
+                            }
+                        },
+                        group: ['ba_jiyin_1'],
+                        subSkill: {
+                            1: {
+                                mod: {
+                                    cardUsable: (card,player,num)=>{
+                                        if (get.name(card) == 'sha') return player.storage.ba_jiyin_1 + num
+                                    }
+                                },
+                                trigger: {player: "phaseEnd"},
+                                popup: false,
+                                forced: true,
+                                charlotte: true,
+                                init: (player,skill)=>{player.storage[skill] = 0},
+                                mark: true,
+                                intro: {
+                                    content: '本回合可以多使用#张杀'
+                                },
+                                onremove: true,
+                                content: ()=>{
+                                    player.storage.ba_jiyin_1 = 0;
+                                    player.syncStorage('ba_jiyin_1');
+                                }
+                            }
+                        }
+                    },
                 },
                 translate: {
                     ba_g_ruishijuan: "瑞士卷",
@@ -7791,7 +7933,11 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                     ba_zhixiang: "掷箱",
                     ba_zhixiang_info: "每回合限一次，你可以将一张黑色牌当作【桃】使用。在濒死阶段以此法使用的【桃】恢复基数+1。",
                     ba_jixing: "急行",
-                    ba_jixing_info: "出牌阶段开始时，你可以获得一名角色的一张牌再摸一张牌，然后失去1点体力。本回合你到其的距离视为1。"
+                    ba_jixing_info: "出牌阶段开始时，你可以获得一名角色的一张牌再摸一张牌，然后失去1点体力。本回合你到其的距离视为1。",
+                    ba_zhenlei: "震雷",
+                    ba_zhenlei_info: "准备阶段，你可以弃置至多X张花色不同的牌，对等量其他角色各造成1点伤害。这些角色本回合内不得使用或打出手牌。(X为你的体力值)",
+                    ba_jiyin: "急饮",
+                    ba_jiyin_info: "出牌阶段，若你的体力大于1，你可以重铸一张基本牌，令本回合【杀】使用次数+1。若重铸的是【杀】【闪】，你失去1点体力；若重铸的是【桃】，你再摸一张牌；若重铸的是【酒】，你恢复1点体力。"
                 },
                 dynamicTranslate: {
                     "ba_kuanglie": function (player) {
