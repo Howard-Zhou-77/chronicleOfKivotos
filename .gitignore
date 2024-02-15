@@ -1,0 +1,8 @@
+_gsdata_/
+.stfolder/
+/.stignore
+/*.bak
+/*.ogg
+/*.mp3
+/*.jpg
+/*.png
