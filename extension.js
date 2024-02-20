@@ -14,6 +14,162 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
             //     return lib.config.extensions && lib.config.extensions.includes(str) && lib.config['extension_' + str + '_enable'];
             // }
 
+            lib.init.css(lib.assetURL + "extension/乞国秘史/card")
+            lib.nature.push('ba_sonic')
+            lib.card.sha.nature.push('ba_sonic')
+            lib.translate.ba_sonic = '振动'
+            lib.translate.ba_sonictag = '振'
+            lib.translate.ba_sonicsha = '振杀'
+            var baOriginalCardInit = lib.element.card.init
+            lib.element.card.init = function () {
+                let ret = baOriginalCardInit.apply(this, arguments);
+                if (ret.name == 'sha' && ret.nature == 'ba_sonic') {
+                    ret.setBackgroundImage('extension/乞国秘史/ba_sonicsha.png');
+                }
+                return ret;
+            }
+            var baOriginalTranslation = get.translation
+            get.translation = function (str, arg) {
+                if (str && str.name == 'sha' && str.nature == 'ba_sonic') {
+                    if (str && typeof str == 'object' && (str.name || str._tempTranslate)) {
+                        if (str._tempTranslate) return str._tempTranslate;
+                        let str2;
+                        if (arg == 'viewAs' && str.viewAs) {
+                            str2 = get.translation(str.viewAs);
+                        }
+                        else {
+                            str2 = get.translation(str.name);
+                        }
+                        if (str2 == '杀') {
+                            str2 = '振' + str2;
+                        }
+                        if (get.itemtype(str) == 'card' || str.isCard) {
+                            if (_status.cardtag && str.cardid) {
+                                let tagstr = '';
+                                for (let i in _status.cardtag) {
+                                    if (_status.cardtag[i].contains(str.cardid)) {
+                                        tagstr += lib.translate[i + '_tag'];
+                                    }
+                                }
+                                if (tagstr) {
+                                    str2 += '·' + tagstr;
+                                }
+                            }
+                            if (str.suit && str.number) {
+                                let cardnum = str.number || '';
+                                if ([1, 11, 12, 13].contains(cardnum)) {
+                                    cardnum = { '1': 'A', '11': 'J', '12': 'Q', '13': 'K' }[cardnum]
+                                }
+                                if (arg == 'viewAs' && str.viewAs != str.name && str.viewAs) {
+                                    str2 += '（' + get.translation(str) + '）';
+                                }
+                                else {
+                                    str2 += '【' + get.translation(str.suit) + cardnum + '】';
+                                    // var len=str2.length-1;
+                                    // str2=str2.slice(0,len)+'<span style="letter-spacing: -2px">'+str2[len]+'·</span>'+get.translation(str.suit)+str.number;
+                                }
+                            }
+                        }
+                        return str2;
+                    }
+                    if (Array.isArray(str)) {
+                        let str2 = get.translation(str[0], arg);
+                        for (let i = 1; i < str.length; i++) {
+                            str2 += '、' + get.translation(str[i], arg);
+                        }
+                        return str2;
+                    }
+                    if (arg == 'skill') {
+                        if (lib.translate[str + '_ab']) return lib.translate[str + '_ab'];
+                        if (lib.translate[str]) return lib.translate[str].slice(0, 2);
+                        return str;
+                    }
+                    else if (arg == 'info') {
+                        if (lib.translate[str + '_info']) return lib.translate[str + '_info'];
+                        let str2 = str.slice(0, str.length - 1);
+                        if (lib.translate[str2 + '_info']) return lib.translate[str2 + '_info'];
+                        if (str.lastIndexOf('_') > 0) {
+                            str2 = str.slice(0, str.lastIndexOf('_'));
+                            if (lib.translate[str2 + '_info']) return lib.translate[str2 + '_info'];
+                        }
+                        str2 = str.slice(0, str.length - 2);
+                        if (lib.translate[str2 + '_info']) return lib.translate[str2 + '_info'];
+                        if (lib.skill[str] && lib.skill[str].prompt) return lib.skill[str].prompt;
+                    }
+                    if (lib.translate[str]) {
+                        return lib.translate[str];
+                    }
+                    if (typeof str == 'string') {
+                        return str;
+                    }
+                    if (typeof str == 'number' || typeof str == 'boolean') {
+                        return str.toString()
+                    }
+                    if (str && str.toString) {
+                        return str.toString();
+                    }
+                    return '';
+                } else {
+                    return baOriginalTranslation.apply(this, arguments);
+                }
+            }
+            lib.card.ba_sonicdamage = {
+                ai: {
+                    result: {
+                        target: -1.5,
+                    },
+                    tag: {
+                        damage: 1,
+                        ba_sonicDamage: 1,
+                        natureDamage: 1,
+                    },
+                },
+            }
+            var baOriginalShaPrompt = lib.card.sha.cardPrompt
+            lib.card.sha.cardPrompt = function (card) {
+                if (card.name == 'sha' && card.nature == 'ba_sonic') return '出牌阶段，对一名其他角色使用。其须使用一张【闪】。否则你对其造成1点振动属性伤害。';
+                else return baOriginalShaPrompt.apply(this, arguments);
+            }
+
+            lib.skill._ba_sonic_skill = {
+                trigger: { source: "damageBegin1" },
+                filter(event, player) {
+                    return event.nature && event.nature == 'ba_sonic'
+                },
+                forced: true,
+                firstDo: true,
+                content(event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result) {
+                    if (trigger.player.getEquip(2) || trigger.player.countCards('h') == 0) {
+                        // player.discard(trigger.player, trigger.player.getEquip(2));
+                        trigger.num++;
+                    } else {
+                        player.discardPlayerCard(trigger.player, 'hej')
+                    }
+                },
+                // silent: true,
+                popup: false,
+                logTarget: "player",
+                ai: {
+                    ba_sonicAttack: true,
+                    effect: {
+                        target: function (card, player, target, current) {
+                            let num1 = 2; let num2 = 1.9;
+                            if (!target.getEquip(2) && target.countCards('h') > 0){
+                                num1 = 1.5;
+                                num2 = 1.42;
+                            }
+                            if (card.name == 'sha') {
+                                if (game.hasNature(card, 'ba_sonic')) return num1;
+                                if (player.hasSkill('ba_feijian')) return num2;
+                            }
+                            if (get.tag(card, 'ba_sonicDamage') && current < 0) return num1;
+                        },
+                    },
+                }
+            }
+            lib.translate['_ba_sonic_skill'] = '振动'
+            lib.translate['_ba_sonic_skill_info'] = '振动伤害：对装备区有防具牌或无手牌的玩家造成伤害+1；对装备区无防具牌且有手牌的玩家造成振动伤害时，伤害来源可弃置其一张牌。'
+
             if (game.isbaGroupChange()) {
                 var style3 = document.createElement('style');
                 style3.innerHTML = ".player .identity[data-color='ba_gehenna'],";
@@ -136,7 +292,7 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                         cardEnabled2: (card, player, now) => {
                             if (get.type(card, 'trick') == 'trick') return false;
                         },
-                        cardChongzhuable: (card, player, result) => {
+                        cardRecastable: (card, player, result) => {
                             if (get.type(card, 'trick') == 'trick') return false;
                         }
                     },
@@ -211,14 +367,15 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                     "ba_YuukaHayase": ["female", "wu", 4, ["ba_qiongxie", "ba_mingsuan"]],
                     "ba_ShirokoSunaookami": ["female", "qun", 4, ["ba_shoulve", "ba_langhun"]],
                     "ba_NoaUshio": ["female", "wu", 4, ["ba_xiangji", "ba_youqing"]],
-                    "ba_HanakoUrawa": ["female", "wei", 4, ["ba_miyin", "ba_xuansuan"]],
+                    "ba_HanakoUrawa": ["female", "wei", 4, ["ba_feijian", "ba_xuansuan"]],
                     "ba_MaryIochi": ["female", "wei", 3, ["ba_xinzhu", "ba_daohui"]],
                     "ba_HinaSorazaki": ["female", "shu", 4, ["ba_yizhen", "ba_jilao"]],
                     "ba_TsurugiKenzaki": ["female", "wei", 5, ["ba_shehun", "ba_xuexiao"]],
                     "ba_AsunaIchinose": ["female", "wu", 4, ["ba_qiangfeng", "ba_tumei"]],
                     "ba_KoharuShitae": ["female", "wei", 3, ["ba_qingzheng", "ba_niwu"]],
                     "ba_MiyakoTsukiyuki": ["female", "qun", 4, ["ba_jujie", "ba_juyuan"]],
-                    "ba_SerinaWashimi": ["female", "wei", 3, ["ba_renxian", "ba_lingyu"]],
+                    "ba_SerinaWashimi": ["female", "wei", 3, ["ba_renxian", "ba_shanxian"]],
+                    'ba_HanaeAsagao': ['female', 'wei', 3, ['ba_yiyi', 'ba_lingyu']],
                     "ba_AliceTendo": ["female", "wu", 4, ["ba_tianjian", "ba_jixue"]],
                     "ba_HimariAkiboshi": ["female", "wu", 3, ["ba_lunyi", "ba_heishu", "ba_chizhi"]],
                     "ba_AruRokuhachima": ["female", "shu", 4, ["ba_baoshe", "ba_chonge"]],
@@ -310,6 +467,7 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                     "ba_KoharuShitae": "下江小春",
                     "ba_MiyakoTsukiyuki": "月雪宫子",
                     "ba_SerinaWashimi": "鹫见芹奈",
+                    'ba_HanaeAsagao': '朝颜花绘',
                     "ba_AliceTendo": "天童爱丽丝",
                     "ba_HimariAkiboshi": "明星日鞠",
                     "ba_AruRokuhachima": "陆八魔阿露",
@@ -2184,6 +2342,78 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                             },
                         },
                     },
+                    'ba_feijian': {
+                        trigger: {
+                            player: "useCard1",
+                        },
+                        filter: function (event, player) {
+                            if (event.card.name == 'sha' && !game.hasNature(event.card)) return true;
+                        },
+                        check: function (event, player) {
+                            var eff = 0;
+                            for (var i = 0; i < event.targets.length; i++) {
+                                var target = event.targets[i];
+                                var eff1 = get.damageEffect(target, player, player);
+                                var eff2 = get.effect(target, { name: "ba_sonicdamage" }, player, player);
+                                eff += eff2;
+                                eff -= eff1;
+                            }
+                            return eff >= 0;
+                        },
+                        "prompt2": function (event, player) {
+                            return '将' + get.translation(event.card) + '改为振动属性';
+                        },
+                        content: function () {
+                            game.setNature(trigger.card, 'ba_sonic');
+                        },
+                        group: 'ba_feijian_1',
+                        subSkill: {
+                            1: {
+                                trigger: { player: "useCard2" },
+                                direct: true,
+                                popup: false,
+                                filter(event, player) {
+                                    return get.nature(event.card) && get.nature(event.card) == 'ba_sonic' && player.countCards('h') && game.hasPlayer(target => {
+                                        return target != player && !event.targets.includes(target) && lib.filter.targetEnabled2(event.card, player, target) && lib.filter.targetInRange(event.card, player, target)
+                                    })
+                                },
+                                content(event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result) {
+                                    'step 0'
+                                    player.chooseCardTarget({
+                                        selectCard: [0, 2],
+                                        selectTarget: () => { return ui.selected.cards.length },
+                                        filterCard: true,
+                                        filterTarget: (card, player, target) => {
+                                            let _card = _status.event.card
+                                            return target != player && !_status.event.sourcex.includes(target) && lib.filter.targetEnabled2(_card, player, target) && lib.filter.targetInRange(_card, player, target)
+                                        },
+                                        complexCard: true,
+                                        complexTarget: true,
+                                        complexSelect: true,
+                                        ai1: card => { return 6 - get.value(card) },
+                                        ai2: target => { 
+                                            let player = _status.event.player;
+                                            let card = _status.event.card
+                                            return get.effect(target, card, player, player) 
+                                        },
+                                        position: 'h',
+                                        prompt: "是否发动【飞溅】②？",
+                                        prompt2: "弃置至多两张牌并选择等量角色为额外目标"
+                                    }).set('sourcex',trigger.targets).set('card',trigger.card)
+                                    'step 1'
+                                    if(result.bool){
+                                        if(!event.isMine()&&!_status.connectMode) game.delayx();
+                                        event.targets=result.targets;
+                                        event.cards = result.cards
+                                    }else event.finish()
+                                    'step 2'
+                                    player.discard(event.cards)
+                                    player.logSkill(event.name, event.targets)
+                                    trigger.targets.addArray(event.targets)
+                                }
+                            }
+                        }
+                    },
                     "ba_xuansuan": {
                         dutySkill: true,
                         locked: true,
@@ -3229,7 +3459,7 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                         trigger: {
                             global: "damageEnd",
                         },
-                        filter: (event, player) => player == event.player || player.inRange(event.player),
+                        filter: (event, player) => player == event.player || player.inRange(event.player) && event.player.isAlive(),
                         content: (event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result) => {
                             'step 0'
                             var cards1 = get.cards();
@@ -3247,6 +3477,45 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                         logTarget: (event, player) => event.player,
                         check: (event, player) => player == event.player || get.attitude(player, event.player) > 0,
                         "prompt2": (event, player) => '将牌堆顶一张牌展示后放入仁库，然后令' + get.translation(event.player) + '摸一张牌并展示之，若二者颜色相同，' + get.translation(event.player) + '恢复1点体力。',
+                    },
+                    "ba_yiyi": {
+                        enable: "phaseUse",
+                        usable: 1,
+                        filter(event, player) {
+                            return game.hasPlayer(target => target.isDamaged()) && player.countCards('h')
+                        },
+                        filterTarget(card, player, target) {
+                            return target.isDamaged()
+                        },
+                        position: 'he',
+                        filterCard(card, player) {
+                            return true;
+                        },
+                        selectCard: 1,
+                        content(event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result) {
+                            'step 0'
+                            player.showCards(cards);
+                            game.log(player, '将', cards, '放入了仁库');
+                            game.cardsGotoSpecial(cards, 'toRenku')
+                            target.recover();
+                            target.judge(function (_card) {
+                                if (get.number(card) % 2 == get.number(_card) % 2) return 2;
+                                else if (player == target) return 0;
+                                return -1;
+                            });
+                            'step 1'
+                            if (result.number % 2 == get.number(card) % 2) {
+                                target.draw();
+                            } else if (player != target) {
+                                if (target.countCards('h')) target.chooseToDiscard(true, 1, 'h')
+                            }
+                        },
+                        ai: {
+                            result: {
+                                target: (player, target) => (player == target ? 0 : -1) + 2 + target.getDamagedHp()
+                            },
+                            order: 4,
+                        },
                     },
                     "ba_lingyu": {
                         trigger: {
@@ -3314,6 +3583,100 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                                 },
                             },
                         },
+                    },
+                    "ba_shanxian": {
+                        enable: ['chooseToUse', 'chooseToRespond'],
+                        usable: 1,
+                        filter(event, player) {
+                            return event.filterCard({ name: "shan" }, player, event) && _status.renku.length && _status.renku.filter((card, index, array) => {
+                                return get.number(card) % 2 == 0 && get.number(card) != 0
+                            }).length > 0
+                        },
+                        chooseButton: {
+                            dialog(event, player) {
+                                let dialog = ui.create.dialog('闪现', 'hidden')
+                                dialog.add(_status.renku)
+                                return dialog
+                            },
+                            filter(button, player) {
+                                let evt = _status.event.getParent()
+                                return get.number(button.link) % 2 == 0 && get.number(button.link) != 0 && evt.filterCard(
+                                    get.autoViewAs({ name: 'shan' }, [button.link])
+                                );
+                            },
+                            check() {
+                                return Math.random();
+                            },
+                            prompt(links, player) {
+                                return "将一张仁库内点数为偶数的牌当作【闪】使用或打出"
+                            },
+                            backup(links, player) {
+                                return {
+                                    card: links[0],
+                                    filterCard: (card) => card == lib.skill.ba_shanxian_backup.card,
+                                    selectCard: -1,
+                                    position: "x",
+                                    viewAs: get.autoViewAs({
+                                        name: "shan",
+                                    }, links) /* {name: 'shan'} */,
+                                    onuse() {
+                                        _status.renku.removeArray(links)
+                                        game.updateRenku()
+                                    }
+                                }
+                            }
+                        },
+                        ai: {
+                            order: 1,
+                            result: {
+                                player: 1,
+                            },
+                            hasShan: true,
+                            skillTagFilter(player, tag, arg) {
+                                return _status.renku.filter((card, index, array) => {
+                                    return get.number(card) % 2 == 0 && get.number(card) != 0
+                                }).length > 0
+                            }
+                        },
+                        group: ['ba_shanxian_1'],
+                        subSkill: {
+                            1: {
+                                trigger: { global: ["loseHpAfter", 'dying'] },
+                                filter(event, player) {
+                                    return event.player.isDamaged() && _status.renku.length && _status.renku.filter((card, index, array) => {
+                                        return get.number(card) % 2 == 1
+                                    })
+                                },
+                                direct: true,
+                                popup: false,
+                                content(event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result) {
+                                    'step 0'
+                                    player.chooseButton(['闪现：获得一张仁库内的奇数牌并弃置一张手牌以令' + get.translation(trigger.player) + '恢复1点体力？', _status.renku], button => {
+                                        let player = _status.event.player;
+                                        let target = _status.event.target;
+                                        return get.recoverEffect(target, player, player) > 0 ? get.value(button.link, player) : -1;
+                                    }, button => {
+                                        return get.number(button.link) % 2 == 1
+                                    }).set('target', trigger.player).set('player', player)
+                                    'step 1'
+                                    if (result.bool) {
+                                        player.logSkill(event.name, trigger.player)
+                                        let cards = result.links;
+                                        _status.renku.removeArray(cards);
+                                        game.updateRenku();
+                                        player.gain(cards)
+                                        player.chooseToDiscard(true, 1, 'h');
+                                        trigger.player.recover();
+                                        /* player.when('ba_shanxianEnd').then(() => {
+                                            player.chooseToDiscard(true, 1, 'h')
+                                        }).then(() => {
+                                            trigger.player.recover()
+                                        }).then(() => game.delayx()); */
+                                    }
+                                },
+                                usable: 1,
+                            }
+                        }
                     },
                     "ba_tianjian": {
                         trigger: {
@@ -7626,20 +7989,20 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                         }
                     },
                     ba_jiyin: {
-                        filterCard: (card, player)=>get.type(card) == 'basic' && player.canRecast(card),
-                        filter: (event,player) => player.hp>1&&player.countCards('h',card=>get.type(card) == 'basic' && player.canRecast(card)),
+                        filterCard: (card, player) => get.type(card) == 'basic' && player.canRecast(card),
+                        filter: (event, player) => player.hp > 1 && player.countCards('h', card => get.type(card) == 'basic' && player.canRecast(card)),
                         position: "h",
                         selectCard: 1,
                         discard: false,
                         lose: false,
                         delay: false,
                         enable: "phaseUse",
-                        content: (event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result)=>{
+                        content: (event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result) => {
                             'step 0'
                             player.recast(cards)
                             'step 1'
                             let name = get.name(cards[0])
-                            switch(name){
+                            switch (name) {
                                 case 'sha':
                                 case 'shan':
                                     player.loseHp()
@@ -7654,21 +8017,21 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                             player.storage.ba_jiyin_1++;
                             player.syncStorage('ba_jiyin_1')
                         },
-                        check: card=>{
+                        check: card => {
                             let player = get.player()
-                            let others = player.getCards('h',_card=>get.type(_card) == 'basic' && _card !=card && player.canRecast(_card))
-                            let othersha = player.getCards('h', _card=>get.name(_card) == 'sha' && _card != card && player.canRecast(_card))
-                            switch(get.name(card)){
+                            let others = player.getCards('h', _card => get.type(_card) == 'basic' && _card != card && player.canRecast(_card))
+                            let othersha = player.getCards('h', _card => get.name(_card) == 'sha' && _card != card && player.canRecast(_card))
+                            switch (get.name(card)) {
                                 case 'sha':
-                                    if (others.filter(_card=>get.name(_card) != 'sha').length) return -1;
-                                    if (!player.hasUsableCard('sha') || !othersha.length) return -1; 
+                                    if (others.filter(_card => get.name(_card) != 'sha').length) return -1;
+                                    if (!player.hasUsableCard('sha') || !othersha.length) return -1;
                                     return 4 - get.value(card);
                                 case 'shan':
-                                    let shans = others.filter(_card=>get.name(_card) == 'shan').length
+                                    let shans = others.filter(_card => get.name(_card) == 'shan').length
                                     let shas = othersha.length
-                                    return player.hp/2+shas/3+shans/1.5 - get.value(card)
+                                    return player.hp / 2 + shas / 3 + shans / 1.5 - get.value(card)
                                 case 'tao':
-                                    return (player.hp <= 2? 5 : 8) + othersha.length / 5 - get.value(card)
+                                    return (player.hp <= 2 ? 5 : 8) + othersha.length / 5 - get.value(card)
                                 case 'jiu':
                                     return othersha.length / 2 + player.getDamagedHp() + 2 - get.value(card)
                                 default:
@@ -7679,23 +8042,31 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                         subSkill: {
                             1: {
                                 mod: {
-                                    cardUsable: (card,player,num)=>{
+                                    cardUsable: (card, player, num) => {
                                         if (get.name(card) == 'sha') return player.storage.ba_jiyin_1 + num
                                     }
                                 },
-                                trigger: {player: "phaseEnd"},
+                                trigger: { player: "phaseEnd" },
                                 popup: false,
                                 forced: true,
                                 charlotte: true,
-                                init: (player,skill)=>{player.storage[skill] = 0},
+                                init: (player, skill) => { player.storage[skill] = 0 },
                                 mark: true,
                                 intro: {
                                     content: '本回合可以多使用#张杀'
                                 },
                                 onremove: true,
-                                content: ()=>{
+                                content: () => {
                                     player.storage.ba_jiyin_1 = 0;
                                     player.syncStorage('ba_jiyin_1');
+                                }
+                            }
+                        },
+                        ai: {
+                            order: 5,
+                            result: {
+                                player: (player) => {
+                                    return 4 - player.getDamagedHp() + (player.countCards('h', 'sha') - 1)
                                 }
                             }
                         }
@@ -7757,9 +8128,11 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                     "ba_xiangji": "详记",
                     "ba_xiangji_info": "一名男性角色的弃牌阶段，若你自你的上一回合以来没有发动此技能，你可以展示其弃置的一张牌，然后直至你下一回合结束，你使用或打出相同类别的牌时摸一张牌。",
                     "ba_youqing_info": "出牌阶段限一次，你可以指定一名攻击范围内的角色，令其恢复1点体力并选择摸两张牌或从所有其攻击范围内的角色各获得一张牌，然后跳过其下一出牌和弃牌阶段。",
+                    'ba_feijian': "飞溅",
                     "ba_miyin": "糜音",
                     "ba_xuansuan": "玄算",
                     "ba_mieju": "灭局",
+                    'ba_feijian_info': "当你使用普通【杀】时，你可以将此牌视为振动【杀】；当你使用振动【杀】指定角色时，可以弃置至多两张牌，额外指定等量角色为目标。",
                     "ba_miyin_info": "出牌阶段限一次，你可以弃置一张红色牌，然后展示一名角色的一张手牌，若其为黑色，你选择弃置其两张牌或令其摸两张牌；否则你选择将这张牌当作【乐不思蜀】或【无中生有】对其使用。",
                     "ba_xuansuan_info": "使命技。当你或你攻击距离内的玩家受到其他玩家使用牌造成的伤害时，你可以令受到伤害的玩家摸一张牌，然后将造成伤害的牌置于你的武将牌上，称为“析”。成功：在添加新的“析”后你的“析”点数总和大于25，你获得所有“析”和【灭局】。失败：你在达成使命成功前死亡，则击杀你的玩家获得所有【析】，增加1体力上限并恢复1点体力。",
                     "ba_mieju_info": "结束阶段，若你回合内没有造成伤害，你可以对一名本回合内失去过牌的角色造成1点伤害；锁定技，当你使用牌时，你令所有与你距离为1的其他角色不能使用或打出牌响应此牌。",
@@ -7798,6 +8171,10 @@ game.import("extension", function (lib, game, ui, get, ai, _status) {
                     'ba_tubian_info': "每回合限一次，你可以将一张基本牌当作任意其他基本牌使用或打出。若此时是你的回合内，你可以摸一张牌；否则你可以对当前回合角色造成1点伤害。",
                     "ba_renxian": "仁仙",
                     "ba_renxian_info": "每回合限一次，当你或一名你攻击范围内的角色受到伤害后，你可以展示牌堆顶一张牌并将其置入仁库，然后其摸一张牌并展示之，若两者颜色相同，其恢复1点体力。",
+                    "ba_shanxian": "闪现",
+                    "ba_shanxian_info": "每回合各限一次，①当有角色进入濒死状态或失去体力时，你可以获得一张仁库内的奇数牌再弃置一张牌，然后其恢复1点体力；②你可以将一张仁库内的偶数牌当作【闪】使用或打出。",
+                    "ba_yiyi": "异医",
+                    "ba_yiyi_info": "出牌阶段限一次，你可以将一张手牌置于仁库内并选定一名角色，该角色恢复1点体力并进行判定，若结果与被置入仁库的牌点数奇偶性相同，其摸一张牌，否则若其不是你，其弃置一张牌。",
                     "ba_lingyu": "灵愈",
                     "ba_lingyu_info": "每轮限一次，一名其他角色的结束阶段或其进入濒死状态时，若其有手牌，仁库中也有牌且其已受伤，你可以展示仁库中的所有牌，并令其展示所有手牌，若仁库中的牌最大的点数和其手牌最小的点数奇偶性相同，其将一张点数最小的手牌放入仁库并恢复1点体力，否则其从仁库中获得一张牌并摸一张牌。",
                     "ba_HikarinoKen_skill": "光之剑",

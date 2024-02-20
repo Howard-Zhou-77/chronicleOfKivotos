@@ -1,0 +1,4 @@
+.card>.temp-name[data-nature='ba_sonic']{
+    color: plum;
+    text-shadow: 0 0 5px purple purple;
+}
