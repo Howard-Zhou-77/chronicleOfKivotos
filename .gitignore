@@ -8,3 +8,8 @@ _gsdata_/
 /*.png
 /*.bat
 characters/*.jpg
+dieAudio/*.mp3
+dieAudio/*.ogg
+victory/*.mp3
+victory/*.ogg
+skin/*

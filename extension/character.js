@@ -1,6 +1,9 @@
 import { game } from "../../../noname.js";
 
 game.import('character', function (lib, game, ui, get, ai, _status) {
+	/**
+	 * @type {importCharacterConfig}
+	 */
 	var ba_characters = {
 		name: 'ba_characters',
 		connect: true,
@@ -147,6 +150,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 			ba_TakaneMiyoshi: ['female', 'western', 4, ['ba_fengping', 'ba_zhanhui']],
 			ba_ChiseWaraku: ['female', 'jin', 3, ['ba_chengpai', 'ba_qianji']],
 			ba_KasumiKinugawa: ['female', 'shu', 3, ['ba_poyan', 'ba_tuolong']],
+			ba_YuzuHanaoka: ['female', 'wu', 4, ['ba_youwang', 'ba_woju']]
 		},
 		characterIntro: {
 			/*
@@ -186,7 +190,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 					'step 2'
 					trigger.cards = event.togain
 				},
-				audio: 2,
+				audio: "ext:乞国秘史:2",
 				subSkill: {
 					call: {
 						enable: "phaseUse",
@@ -271,7 +275,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 				mod: {
 					targetInRange: (card, player) => { if (card.name == 'sha') return true; },
 				},
-				audio: 2,
+				audio: "ext:乞国秘史:2",
 				group: ["mouJushe_1", "mouJushe_2"],
 				subSkill: {
 					"1": {
@@ -5353,7 +5357,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 			},
 			ba_jugu: {
 				inherit: "jugu",
-				audio: 2,
+				audio: "ext:乞国秘史:2",
 			},
 			ba_hengchong: {
 				trigger: { player: "phaseZhunbeiBegin" },
@@ -5380,7 +5384,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 						});
 					}
 				},
-				audio: 4,
+				audio: "ext:乞国秘史:4",
 				group: ['ba_hengchong_1', 'ba_hengchong_2'],
 				ai: {
 					unequip: true,
@@ -5447,7 +5451,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 				check: function (card) {
 					return 7 - get.value(card);
 				},
-				audio: 2,
+				audio: "ext:乞国秘史:2",
 				ai: {
 					wuxie: function () {
 						return 0;
@@ -5522,7 +5526,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 				},
 				forced: true,
 				locked: true,
-				audio: 2,
+				audio: "ext:乞国秘史:2",
 				content: (event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result) => {
 					var damaged = player.getHistory("sourceDamage", evt => {
 						return evt.player != player && evt.num > 0 && evt.player.isAlive()
@@ -5607,7 +5611,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 				filter: (event, player) => { return player.countCards('he', { color: "red" }) > 0 },
 				direct: true,
 				popup: false,
-				audio: 3,
+				audio: "ext:乞国秘史:3",
 				content: (event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result) => {
 					'step 0'
 					player.chooseCardTarget({
@@ -5714,7 +5718,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 						audio: "ba_lanzha"
 					}
 				},
-				audio: 2,
+				audio: "ext:乞国秘史:2",
 			},
 			'ba_shouxie': {
 				trigger: { global: "phaseZhunbeiBegin" },
@@ -5724,7 +5728,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 				},
 				direct: true,
 				popup: false,
-				audio: 2,
+				audio: "ext:乞国秘史:2",
 				content: (event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result) => {
 					'step 0'
 					if (player.countCards('h') == 0) {
@@ -5823,7 +5827,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 						player.addToExpansion(result.cards, 'addToExpansion').gaintag.add('ba_kuxun');
 					}
 				},
-				audio: 2,
+				audio: "ext:乞国秘史:2",
 				group: ['ba_kuxun_achieve', 'ba_kuxun_fail'],
 				subSkill: {
 					achieve: {
@@ -5884,7 +5888,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 				// },
 				direct: true,
 				popup: false,
-				audio: 2,
+				audio: "ext:乞国秘史:2",
 				content: (event, step, source, player, target, targets, card, cards, skill, forced, num, trigger, result) => {
 					'step 0'
 					player.chooseButton(['【掩射】：是否要对' + get.translation(trigger.player) + '使用一张【杀】？请选择【杀】的类型：', [[['基本', '', 'sha', 'fire'], ['基本', '', 'sha', 'stab']], 'vcard']]).set('ai', button => {
@@ -5920,7 +5924,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 				trigger: {
 					player: "useCardToPlayer",
 				},
-				audio: 3,
+				audio: "ext:乞国秘史:3",
 				shaRelated: true,
 				filter: (event, player) => {
 					return event.card && get.name(event.card) == 'sha' && event.target.countCards('h') > 0
@@ -6485,6 +6489,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 							})) player.recover();
 						},
 						forced: true,
+						audio: "ba_tuya"
 					},
 					lock: {
 						mod: {
@@ -6553,9 +6558,11 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 					//     },
 					// }
 				},
-				group: ['ba_tuya_put', 'ba_tuya_use']
+				group: ['ba_tuya_put', 'ba_tuya_use'],
+				audio: "ext:乞国秘史:3",
 			},
 			ba_shedie: {
+				audio: "ext:乞国秘史:2",
 				mod: {
 					cardnature: (card, player) => {
 						if (!get.nature(card, false) && get.name(card) == 'sha') return 'fire'
@@ -6766,7 +6773,8 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 				ai: {
 					expose: 0.8,
 					threaten: 1.4,
-				}
+				},
+				audio: "ext:乞国秘史:2"
 			},
 			ba_chuanju: {
 				mod: {
@@ -6814,6 +6822,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 							}
 						},
 						sub: true,
+						audio: "ba_chuanju"
 					}, 2: {
 						trigger: { source: "damageAfter" },
 						filter: (event, player) => {
@@ -6832,6 +6841,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 					}
 				},
 				group: ["ba_chuanju_1", "ba_chuanju_2"],
+				audio: "ext:乞国秘史:2",
 			},
 			ba_lijiao: {
 				trigger: { player: "useCardToPlayered" },
@@ -8139,6 +8149,152 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 					},
 				},
 			},
+			'ba_youwang': {
+				trigger: { player: "phaseZhunbeiBegin" },
+				filter: (event, player) => game.hasPlayer(current => player.canCompare(current)),
+				async content(event, trigger, player) {
+					const { result } = await player.chooseTarget(get.prompt2(event.name), (card, player, target) => {
+						return player.canCompare(target);
+					},
+						/**
+						 * @param {Player} target 
+						 * @returns {number}
+						 */
+						(target) => {
+							let player = get.player();
+							let thresold = 12;
+							let tarCards = target.countCards('h');
+							if (tarCards <= 2) thresold = 8;
+							else if (tarCards == 3) thresold = 10;
+							if (get.attitude(player, target) > 2) return player.countCards('h', card => get.value(card) <= 5.5 && get.number(card) + 1 + player.countCards('e') <= 14 - thresold)
+							else if (get.damageEffect(target, player, player, 'fire') >= 0) return player.countCards('h', card => get.value(card) <= 5.5 && get.number(card) + 1 + player.countCards('e') >= thresold)
+							else return -1;
+						})
+					if (result.bool) {
+						const target = result.targets[0];
+						player.logSkill(event.name, target)
+						player.line2(result.targets);
+						const next = player.chooseToCompare(target);
+						let result2 = await next.forResult();
+						if (result2.bool) {
+							target.damage(1, 'fire');
+							target.addTempSkill('ba_youwang_1');
+							target.storage.ba_youwang_1 = player;
+							player.draw();
+						} else {
+							target.insertPhase();
+							target.addTempSkill('ba_youwang_2', { player: "phaseEnd" });
+							target.storage.ba_youwang_2 = player;
+						}
+					} else return;
+				},
+				popup: false,
+				direct: true,
+				mod: {
+					cardUsableTarget: (card, player, target) => {
+						if (get.name(card) == 'sha' && target.hasSkill('ba_youwang_1') && target.storage.ba_youwang_1 && target.storage.ba_youwang_1 == player) return true;
+					},
+					targetInRange: (card, player, target) => {
+						if (target.hasSkill('ba_youwang_1') && target.storage.ba_youwang_1 && target.storage.ba_youwang_1 == player) return true;
+					}
+				},
+				subSkill: {
+					1: {
+						sub: true,
+						charlotte: true,
+						init: (player, skill) => {
+							player.storage[skill] = undefined;
+						},
+						onremove: true,
+						mark: true,
+						intro: {
+							content: "$对其使用牌无距离限制，使用【杀】没有次数限制。"
+						}
+					},
+					2: {
+						sub: true,
+						charlotte: true,
+						init: (player, skill) => {
+							player.storage[skill] = undefined;
+						},
+						onremove: true,
+						mark: true,
+						intro: {
+							content: "对$使用杀无距离次数限制且伤害+1。"
+						},
+						mod: {
+							targetInRange: (card, player, target) => {
+								if (get.name(card) == 'sha' && target == player.storage.ba_youwang_2) return true;
+							},
+							cardUsableTarget: (card, player, target) => {
+								if (get.name(card) == 'sha' && target == player.storage.ba_youwang_2) return true;
+							}
+						},
+						forced: true,
+						trigger: { source: "damageBegin" },
+						filter: function (event, player) {
+							return event.player == player.storage.ba_youwang_2
+						},
+						async content(event, trigger, player) {
+							trigger.num++;
+						}
+					},
+					3: {
+						trigger: {
+							player: "compare",
+							target: "compare",
+						},
+						forced: true,
+						filter: function (event, player) {
+							// if(player!=event.target&&event.iwhile) return false;
+							return (player == event.player ? event.num1 : event.num2) < 13;
+						},
+						sub: true,
+						async content(event, trigger, player) {
+							if (player == trigger.target || !trigger.iwhile) {
+								let intPtr = trigger[player == trigger.player ? "num1" : "num2"];
+								let addNum = Math.min(13 - intPtr, player.countCards('e') + 1);
+								trigger[player == trigger.player ? "num1" : "num2"] += addNum;
+								game.log(player, "的拼点牌点数+", addNum);
+							}
+							game.delayex();
+						}
+					},
+				},
+				group: ['ba_youwang_3'],
+				audio: "ext:乞国秘史:2"
+			},
+			'ba_woju': {
+				trigger: { player: "phaseJieshuBegin" },
+				filter(event, player) {
+					return player.countCards('h') < 3
+				},
+				async content(event, trigger, player) {
+					player.draw(4);
+					player.turnOver();
+				},
+				check(event, player) {
+					return true;
+				},
+				group: 'ba_woju_1',
+				subSkill: {
+					1: {
+						sub: true,
+						trigger: {
+							player: "damageBegin3",
+						},
+						filter: function (event, player) {
+							return player.isTurnedOver();
+						},
+						forced: true,
+						content: async function (event, trigger, player) {
+							trigger.num--;
+							player.draw();
+						},
+					}
+				},
+				audio: "ext:乞国秘史:2",
+			},
 		},
 		translate: {
 			/*
@@ -8193,6 +8349,7 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 			ba_TakaneMiyoshi: "三善高岭",
 			ba_ChiseWaraku: "和乐千世",
 			ba_KasumiKinugawa: "鬼怒川霞",
+			ba_YuzuHanaoka: "花冈柚子",
 
 			mouJushe: "狙射",
 			"mouJushe_info": "当你使用或打出一张基本牌的时候，你可以进行判定，若结果颜色与该基本牌相同，则你可以指定一名角色视为对其使用一张不计入次数的火【杀】。锁定技，你使用【杀】无距离限制，你对攻击范围内的角色使用的【杀】不可被响应，当你使用黑色的【杀】造成伤害时，你摸一张牌。",
@@ -8446,21 +8603,29 @@ game.import('character', function (lib, game, ui, get, ai, _status) {
 			ba_poyan: "破岩",
 			ba_poyan_info: "出牌阶段限一次，你可以弃置两张点数奇偶性相同的牌，对一名攻击范围内的角色造成1点振动伤害并弃置其一张牌。",
 			ba_tuolong: "脱笼",
-			ba_tuolong_info: "当你造成1点属性伤害时，你获得一枚【泉】，每有一枚【泉】，你到其他角色的距离-1；每回合各限一次，你可以弃置一张【泉】，将一张点数为奇数/偶数的牌视作【闪】/【无懈可击】使用或打出。"
+			ba_tuolong_info: "当你造成1点属性伤害时，你获得一枚【泉】，每有一枚【泉】，你到其他角色的距离-1；每回合各限一次，你可以弃置一张【泉】，将一张点数为奇数/偶数的牌视作【闪】/【无懈可击】使用或打出。",
+			ba_youwang: "柚王",
+			ba_youwang_info: "准备阶段，你可以和一名其他角色拼点。若你赢，你摸一张牌并对其造成1点火焰伤害，且本回合对其使用牌无距离限制，使用【杀】无次数限制；否则，其在你回合结束后执行一个额外的回合，在该回合内其对你使用【杀】无次数和距离限制且在该额外回合结束前其对你造成的伤害+1。锁定技，你拼点时点数+1+X(X为你装备区内的牌数)",
+			ba_woju: "蜗居",
+			ba_woju_info: "结束阶段，若你的手牌数少于3，你可以摸四张牌然后翻面。锁定技，当你翻面时，你受到的伤害-1且同时你摸一张牌。",
 		},
 	};
 
 	//————武将图片路径设置————//
+	//————以及死亡配音————//
 	if (lib.device || lib.node) {
-		for (var i in ba_characters.character) { 
-			if (ba_characters.character[i].length <=4) ba_characters.character[i].push([])
-			ba_characters.character[i][4].push('ext:乞国秘史/characters/' + i + '.jpg'); 
+		for (var i in ba_characters.character) {
+			if (ba_characters.character[i].length <= 4) ba_characters.character[i].push([])
+			ba_characters.character[i][4].push('ext:乞国秘史/characters/' + i + '.jpg', 'die:ext:乞国秘史/dieAudio/' + i);
 		}
 	} else {
-		for (var i in ba_characters.character) { 
-			if (ba_characters.character[i].length <=4) ba_characters.character[i].push([])
-			ba_characters.character[i][4].push('db:extension-乞国秘史/characters/' + i + '.jpg'); 
+		for (var i in ba_characters.character) {
+			if (ba_characters.character[i].length <= 4) ba_characters.character[i].push([])
+			ba_characters.character[i][4].push('db:extension-乞国秘史/characters/' + i + '.jpg', 'die:ext:乞国秘史/dieAudio/' + i);
 		}
+	}
+	if (lib.ba_setTaici) {
+		lib.ba_setTaici(ba_characters);
 	}
 
 	/**

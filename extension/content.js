@@ -7,7 +7,8 @@ export let CONTENT = function (config, pack) {
   非必要，可以不写
   */
   lib.init.css(lib.assetURL + "extension/乞国秘史/card")
-  lib.nature.push('ba_sonic')
+  // lib.nature.push('ba_sonic')
+  lib.nature.set('ba_sonic', 35);
   lib.card.sha.nature.push('ba_sonic')
   lib.translate.ba_sonic = '振动'
   lib.translate.ba_sonictag = '振'
@@ -15,7 +16,7 @@ export let CONTENT = function (config, pack) {
   var baOriginalCardInit = lib.element.card.init
   lib.element.card.init = function () {
     let ret = baOriginalCardInit.apply(this, arguments);
-    if (ret.name == 'sha' && ret.nature == 'ba_sonic') {
+    if (ret.name == 'sha' && ret.nature == 'ba_sonic' && !game.baHasExtension('十周年UI')) {
       ret.setBackgroundImage('extension/乞国秘史/ba_sonicsha.png');
     }
     return ret;
@@ -285,7 +286,7 @@ export let CONTENT = function (config, pack) {
       lib.qhly_groupcolor['ba_hakkiyako'] = '#A019A0';
     }
   }
-  lib.skill._ba_dieAudio = {
+  /* lib.skill._ba_dieAudio = {
     trigger: { global: 'dieBegin', },
     filter: (event, player) => {
       return ['mouMiyuKasumizawa', 'mouMikaMisono', 'mouAzusaShirasu', 'mouHoshinoTakanashi'].includes(event.player.name) || event.player.name.indexOf('ba_') == 0;
@@ -297,7 +298,7 @@ export let CONTENT = function (config, pack) {
     content: function () {
       game.playAudio('..', 'extension', '乞国秘史', trigger.player.name);
     },
-  }
+  } */
   lib.rank.rarity.legend.addArray(["ba_HasumiHanekawa", "mouMikaMisono", "ba_HifumiAjitani", "ba_MakiKomami", "ba_HifumiAjitani", "ba_JuriUshimaki", "ba_KarinKakuTate", "ba_KikyouKiryuu"])
   lib.rank.rarity.epic.addArray(["mouHoshinoTakanashi", "ba_HinaSorazaki", "ba_AkariWanibuchi", "mouMiyuKasumizawa", "ba_HarunaKurodate", 'ba_IoriShiromi'])
   lib.rank.rarity.rare.addArray(["mouAzusaShirasu"])

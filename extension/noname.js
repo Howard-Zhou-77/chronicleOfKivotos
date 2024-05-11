@@ -1,3 +1,4 @@
+///<reference path="../../../node_modules/noname-typings/index.d.ts"/>
 export { gnc } from '../../../noname/gnc/index.js';
 export { ai } from '../../../noname/ai/index.js';
 export { game } from '../../../noname/game/index.js';
